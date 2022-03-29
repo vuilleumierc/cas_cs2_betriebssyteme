@@ -36,8 +36,12 @@ class CPU():
     def execute(self):
         while True:
             if self.pc < len(self.ram):
+
+                # Read command
                 cmd = self.ram[self.pc]
                 print(f"pc: {self.pc} cmd: {cmd}")
+
+                # Evaluate command
                 if cmd == "NOP":
                     self.pc += 1
                 else:
@@ -46,6 +50,8 @@ class CPU():
             else:
                 self.pc = 0
             time.sleep(.5)
+
+            # Interrupt handler
             cpu_handle_interrupt()
 
 ram = ["NOP", "NOP", "NOP", "NOP", "NOP", "NOP"]
