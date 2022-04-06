@@ -26,6 +26,7 @@ def cpu_handle_interrupt(ram, current_pc):
 
     if interrupt == True:
         print("############## INTERRUPT ###############")
+        interrupt = False
         # Scheduler
         if schedulerSwitch:
             pc = 6
@@ -33,7 +34,6 @@ def cpu_handle_interrupt(ram, current_pc):
             pc = 9
         # Execute interrupt command
         cpu_execute(ram, pc)
-        interrupt = False
         schedulerSwitch = not schedulerSwitch
 
     # Return pc to the value before interrupt
@@ -43,32 +43,27 @@ def cpu_execute(ram, pc):
     while True:
         cmd = ram[pc]
         print(f"pc: {pc} cmd: {cmd}")
-        # NOOP
+        # No operation
         if cmd[0] == "NOP":
             pc += 1
-            # Interrupt handler
-            pc = cpu_handle_interrupt(ram, pc)
-        # JMP
+        # Jump to some place in the memory
         elif cmd[0] == "JMP":
             try:
                 pc = cmd[1]
             except (IndexError, TypeError):
                 print("JMP requires one argument of type integer")
-            # Interrupt handler
-            pc = cpu_handle_interrupt(ram, pc)
-        # Interrupt instructions
-        elif cmd[0].startswith("INR"):
-            pc += 1
-        # End of interrupt
+        # End of an interrupt
         elif cmd[0] == "IRET":
             return
         else:
             print(f"Unknown command {cmd}")
             pc +=1
+        # Check for interrupt
+        pc = cpu_handle_interrupt(ram, pc)
         time.sleep(.5)
 
-ram = [["NOP"], ["NOP"], ["JMP", 3], ["NOP"], ["NOP"], ["JMP", 0], ["INR1"], ["INR1"], ["IRET"], ["INR2"], ["IRET"]]
-#      | program 1                   | program 2                   | interrupt 1                 | interrupt 2     |
+ram = [["NOP"], ["NOP"], ["JMP", 3], ["NOP"], ["NOP"], ["JMP", 0], ["NOP"], ["NOP"], ["IRET"], ["NOP"], ["IRET"]]
+#      | program 1                   | program 2                   | interrupt 1               | interrupt 2    |
 
 cpu_thread = threading.Thread(target = cpu_execute, args=(ram, 0))
 interrupt_thread = threading.Thread(target = interrupt_controller_thread)
